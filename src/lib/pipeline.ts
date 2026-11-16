@@ -5,7 +5,7 @@ export const STAGE_LABEL: Record<Stage, string> = {
   wishlist: "Wishlist",
   applied: "Applied",
   interview: "Interviewing",
-  offer: "Offer 🎉",
+  offer: "Offer",
   rejected: "Rejected",
 };
 

@@ -1,3 +1,5 @@
+<img src="public/logo.svg" alt="" width="64" height="64">
+
 # HuntBoard: Job Application Tracker
 
 A drag-and-drop kanban board for your job search. Move applications from **Wishlist → Applied → Interviewing → Offer**, get nudged when a follow-up is due, and see your real response rate.

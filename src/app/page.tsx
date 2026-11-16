@@ -1,3 +1,4 @@
+import { BellRing } from "lucide-react";
 import { requireUser } from "@/lib/supabase/server";
 import { dueFollowUps, stats, type App } from "@/lib/pipeline";
 import { Board } from "./Board";
@@ -20,7 +21,7 @@ export default async function Home() {
       </div>
       {due.length > 0 && (
         <div className="card border-amber-200 bg-amber-50 p-4 text-sm">
-          <b>Follow up today:</b> {due.map((a) => `${a.role} @ ${a.company}`).join(" · ")}
+          <BellRing size={16} className="mr-1.5 inline align-text-bottom" aria-hidden /><b>Follow up today:</b> {due.map((a) => `${a.role} @ ${a.company}`).join(" · ")}
         </div>
       )}
       <Board apps={apps} />

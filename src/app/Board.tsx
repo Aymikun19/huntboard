@@ -1,5 +1,7 @@
 "use client";
 
+import { Plus } from "lucide-react";
+
 import { useOptimistic, useState, useTransition } from "react";
 import { DndContext, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { STAGES, STAGE_LABEL, type App, type Stage } from "@/lib/pipeline";
@@ -27,7 +29,9 @@ export function Board({ apps }: { apps: App[] }) {
   return (
     <>
       <div className="flex justify-end">
-        <button className="btn" onClick={() => setEditing("new")}>+ Add application</button>
+        <button className="btn" onClick={() => setEditing("new")}>
+          <Plus size={16} aria-hidden /> Add application
+        </button>
       </div>
       <DndContext sensors={sensors} onDragEnd={onDragEnd}>
         <div className="grid gap-3 overflow-x-auto pb-4 md:grid-cols-5">
