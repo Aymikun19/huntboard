@@ -36,3 +36,73 @@ export function dueFollowUps(apps: App[], today: string) {
 }
 
 export const isStage = (s: unknown): s is Stage => STAGES.includes(s as Stage);
+
+/** Cumulative funnel: everyone who reached a stage or a later one. Rejections count as applied. */
+export function funnel(apps: App[]) {
+  const reached = (s: Stage) =>
+    apps.filter((a) => {
+      if (s === "wishlist") return true;
+      if (s === "applied") return a.stage !== "wishlist";
+      if (s === "interview") return a.stage === "interview" || a.stage === "offer";
+      return a.stage === "offer";
+    }).length;
+  const steps = (["wishlist", "applied", "interview", "offer"] as Stage[]).map((s) => ({ stage: s, count: reached(s) }));
+  return steps.map((st, i) => ({ ...st, conversion: i === 0 || !steps[i - 1].count ? null : Math.round((st.count / steps[i - 1].count) * 100) }));
+}
+
+const mondayOf = (iso: string) => {
+  const d = new Date(iso + "T00:00:00Z");
+  const day = d.getUTCDay();
+  d.setUTCDate(d.getUTCDate() + (day === 0 ? -6 : 1 - day));
+  return d.toISOString().slice(0, 10);
+};
+
+/** Applications sent per week for the last `n` weeks (oldest first). */
+export function weeklyApplied(apps: App[], today: string, n = 10) {
+  const end = mondayOf(today);
+  const weeks = Array.from({ length: n }, (_, i) => {
+    const d = new Date(end + "T00:00:00Z");
+    d.setUTCDate(d.getUTCDate() - 7 * (n - 1 - i));
+    return d.toISOString().slice(0, 10);
+  });
+  const counts = new Map(weeks.map((w) => [w, 0]));
+  for (const a of apps) {
+    if (!a.applied_on) continue;
+    const w = mondayOf(a.applied_on);
+    if (counts.has(w)) counts.set(w, counts.get(w)! + 1);
+  }
+  return weeks.map((w) => ({ week: w, count: counts.get(w)! }));
+}
+
+export function daysBetween(from: string, to: string) {
+  return Math.round((Date.parse(to + "T00:00:00Z") - Date.parse(from + "T00:00:00Z")) / 86_400_000);
+}
+
+/** Minimal RFC 4180 CSV parser (quotes, escaped quotes, CRLF). */
+export function parseCSV(text: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = "";
+  let quoted = false;
+  const src = text.replace(/^﻿/, "");
+  for (let i = 0; i < src.length; i++) {
+    const c = src[i];
+    if (quoted) {
+      if (c === '"' && src[i + 1] === '"') { cell += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else cell += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(cell); cell = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && src[i + 1] === "\n") i++;
+      row.push(cell); cell = "";
+      if (row.some((x) => x.trim())) rows.push(row);
+      row = [];
+    } else cell += c;
+  }
+  row.push(cell);
+  if (row.some((x) => x.trim())) rows.push(row);
+  return rows;
+}
+
+export const CSV_HEADER = ["Company", "Role", "Stage", "Location", "Link", "Applied on", "Follow up on", "Notes"];

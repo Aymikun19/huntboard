@@ -44,3 +44,58 @@ export async function deleteApplication(id: string) {
   await supabase.from("applications").delete().eq("id", id);
   revalidatePath("/");
 }
+
+/** Mark a follow-up done (clear it) or push it back by `days`. */
+export async function snoozeFollowUp(id: string, days: number | null) {
+  const { supabase } = await requireUser();
+  let next: string | null = null;
+  if (days) {
+    const d = new Date();
+    d.setUTCDate(d.getUTCDate() + days);
+    next = d.toISOString().slice(0, 10);
+  }
+  await supabase.from("applications").update({ follow_up_on: next }).eq("id", id);
+  revalidatePath("/");
+}
+
+export async function importCSV(_prev: { error?: string; imported?: number }, form: FormData): Promise<{ error?: string; imported?: number }> {
+  const { supabase } = await requireUser();
+  const file = form.get("file");
+  const text = file instanceof File && file.size ? await file.text() : String(form.get("text") || "");
+  if (!text.trim()) return { error: "Choose a CSV file first." };
+  if (text.length > 500_000) return { error: "That file is too large (500 KB max)." };
+  const { parseCSV, isStage } = await import("@/lib/pipeline");
+  const [header, ...rows] = parseCSV(text);
+  const col = (name: string) => header.findIndex((h) => h.trim().toLowerCase() === name.toLowerCase());
+  const ic = col("company");
+  const ir = col("role");
+  if (ic < 0 || ir < 0) return { error: "The CSV needs at least Company and Role columns." };
+  const get = (r: string[], name: string) => {
+    const i = col(name);
+    return i >= 0 ? r[i]?.trim() || null : null;
+  };
+  const date = (v: string | null) => (v && /^\d{4}-\d{2}-\d{2}$/.test(v) ? v : null);
+  const records = rows
+    .filter((r) => r[ic]?.trim() && r[ir]?.trim())
+    .slice(0, 500)
+    .map((r) => {
+      const stage = (get(r, "stage") ?? "wishlist").toLowerCase();
+      const url = get(r, "link");
+      return {
+        company: r[ic].trim(),
+        role: r[ir].trim(),
+        stage: isStage(stage) ? stage : stage.startsWith("interview") ? "interview" : "wishlist",
+        location: get(r, "location"),
+        url: url && /^https?:\/\//.test(url) ? url : null,
+        applied_on: date(get(r, "applied on")),
+        follow_up_on: date(get(r, "follow up on")),
+        notes: get(r, "notes"),
+      };
+    });
+  if (!records.length) return { error: "No rows with a company and role were found." };
+  const { error } = await supabase.from("applications").insert(records);
+  if (error) return { error: error.message };
+  revalidatePath("/");
+  revalidatePath("/insights");
+  return { imported: records.length };
+}
