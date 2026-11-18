@@ -4,6 +4,7 @@ import { Save, Trash2, X } from "lucide-react";
 import { useActionState, useEffect } from "react";
 import { STAGES, STAGE_LABEL, type App } from "@/lib/pipeline";
 import { saveApplication } from "./actions";
+import { isoToLagosLocal } from "@/lib/ics";
 
 export function AppForm({ app, onDone, onDelete }: { app?: App; onDone: () => void; onDelete?: () => void }) {
   type S = { error?: string; done?: boolean };
@@ -29,7 +30,11 @@ export function AppForm({ app, onDone, onDelete }: { app?: App; onDone: () => vo
         </label>
       </div>
       <label className="field"><span>Job link</span><input name="url" type="url" defaultValue={app?.url ?? ""} placeholder="https://" /></label>
-      <label className="field"><span>Follow up on</span><input name="follow_up_on" type="date" defaultValue={app?.follow_up_on ?? ""} /></label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <label className="field"><span>Follow up on</span><input name="follow_up_on" type="date" defaultValue={app?.follow_up_on ?? ""} /></label>
+        <label className="field"><span>Interview <span className="font-normal text-stone-500">(Lagos time)</span></span><input name="interview_at" type="datetime-local" defaultValue={isoToLagosLocal(app?.interview_at ?? null)} /></label>
+      </div>
+      <label className="field"><span>Interviewer or format</span><input name="interview_with" defaultValue={app?.interview_with ?? ""} placeholder="e.g. Ada (Eng Manager), Google Meet" /></label>
       <label className="field"><span>Notes</span><textarea name="notes" rows={6} defaultValue={app?.notes ?? ""} placeholder="Recruiter name, salary range, interview prep…" /></label>
       {app?.applied_on && <p className="text-xs text-stone-500">Applied on {app.applied_on}</p>}
       {state.error && <p role="alert" className="text-sm text-red-600">{state.error}</p>}

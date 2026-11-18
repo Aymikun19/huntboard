@@ -1,4 +1,4 @@
-import { BellRing, ChartNoAxesCombined, FileDown, KanbanSquare, NotebookText, Search } from "lucide-react";
+import { BellRing, ChartNoAxesCombined, FileDown, KanbanSquare, Video, Search } from "lucide-react";
 
 export const brand = {
   name: "HuntBoard",
@@ -14,7 +14,7 @@ export const brand = {
     { icon: BellRing, title: "Follow-up reminders", text: "Set a follow-up date and the board tells you who to chase today." },
     { icon: ChartNoAxesCombined, title: "Funnel analytics", text: "Response, interview and offer rates, plus applications sent per week." },
     { icon: Search, title: "Search and filter", text: "Find any role or company instantly, or filter the board to one stage." },
-    { icon: NotebookText, title: "Notes and details", text: "Keep the link, salary, contact and notes for every application in one place." },
+    { icon: Video, title: "Interview scheduler", text: "Log interview times and who you are meeting, see what is coming up, and add them to Google or Apple Calendar." },
     { icon: FileDown, title: "Export to CSV", text: "Download your whole pipeline as a spreadsheet." },
   ],
   steps: [

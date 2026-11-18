@@ -12,6 +12,7 @@ export const STAGE_LABEL: Record<Stage, string> = {
 export type App = {
   id: string; company: string; role: string; url: string | null; location: string | null;
   stage: Stage; applied_on: string | null; follow_up_on: string | null; notes: string | null; updated_at: string;
+  interview_at?: string | null; interview_with?: string | null;
 };
 
 /** Pipeline metrics. Response rate = applications that got any reply (interview, offer or rejection). */
@@ -106,3 +107,11 @@ export function parseCSV(text: string): string[][] {
 }
 
 export const CSV_HEADER = ["Company", "Role", "Stage", "Location", "Link", "Applied on", "Follow up on", "Notes"];
+
+/** Interviews from now on (and any in the last 2 hours), soonest first. */
+export function upcomingInterviews(apps: App[], now = new Date()): App[] {
+  const from = now.getTime() - 2 * 3_600_000;
+  return apps
+    .filter((a) => a.interview_at && new Date(a.interview_at).getTime() >= from)
+    .sort((a, b) => a.interview_at!.localeCompare(b.interview_at!));
+}

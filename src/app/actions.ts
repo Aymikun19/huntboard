@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
+import { lagosLocalToIso } from "@/lib/ics";
 import { requireUser } from "@/lib/supabase/server";
 import { isStage, STAGES } from "@/lib/pipeline";
 
@@ -13,6 +14,8 @@ const schema = z.object({
   stage: z.enum(STAGES).default("wishlist"),
   follow_up_on: z.string().optional(),
   notes: z.string().optional(),
+  interview_at: z.string().optional(),
+  interview_with: z.string().trim().max(120).optional(),
 });
 
 export async function saveApplication(_prev: { error?: string }, form: FormData): Promise<{ error?: string }> {
@@ -24,7 +27,10 @@ export async function saveApplication(_prev: { error?: string }, form: FormData)
     url: parsed.data.url || null,
     follow_up_on: parsed.data.follow_up_on || null,
     notes: parsed.data.notes || null,
+    interview_at: parsed.data.interview_at ? lagosLocalToIso(parsed.data.interview_at) : null,
+    interview_with: parsed.data.interview_with || null,
   };
+  if (parsed.data.interview_at && !row.interview_at) return { error: "Pick a valid interview date and time" };
   const id = String(form.get("id") || "");
   const { error } = id ? await supabase.from("applications").update(row).eq("id", id) : await supabase.from("applications").insert(row);
   if (error) return { error: error.message };

@@ -1,6 +1,6 @@
 "use client";
 
-import { CalendarClock, ExternalLink, MapPin, Plus, Search } from "lucide-react";
+import { CalendarClock, ExternalLink, MapPin, Plus, Search, Video } from "lucide-react";
 import { useMemo, useOptimistic, useState, useTransition } from "react";
 import { DndContext, PointerSensor, TouchSensor, useDraggable, useDroppable, useSensor, useSensors, type DragEndEvent } from "@dnd-kit/core";
 import { daysBetween, STAGES, STAGE_LABEL, type App, type Stage } from "@/lib/pipeline";
@@ -121,6 +121,11 @@ function Card({ app, onOpen, today }: { app: App; onOpen: () => void; today: str
         {app.location && <span className="inline-flex items-center gap-1"><MapPin size={11} aria-hidden /> {app.location}</span>}
         {age !== null && app.stage !== "wishlist" && <span>{age === 0 ? "Applied today" : `${age}d ago`}</span>}
       </div>
+      {app.interview_at && app.interview_at.slice(0, 10) >= today && (
+        <p className="mt-1 inline-flex items-center gap-1 text-xs font-medium text-violet-700" suppressHydrationWarning>
+          <Video size={12} aria-hidden /> Interview {new Date(app.interview_at).toLocaleString("en-NG", { timeZone: "Africa/Lagos", weekday: "short", day: "numeric", month: "short", hour: "numeric", minute: "2-digit" })}
+        </p>
+      )}
       {app.follow_up_on && (
         <p className={`mt-1 inline-flex items-center gap-1 text-xs ${overdue ? "font-medium text-amber-700" : "text-stone-500"}`}>
           <CalendarClock size={12} aria-hidden /> Follow up {app.follow_up_on}
