@@ -29,5 +29,5 @@ export const brand = {
   ] as { href: string; label: string; public?: boolean }[],
   width: "max-w-7xl",
   repo: "https://github.com/Aymikun19/huntboard",
-  preview: null as string | null,
+  preview: "/preview.webp" as string | null,
 };
